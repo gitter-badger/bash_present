@@ -33,19 +33,20 @@ align_text() {
 }
 
 slide_present() {
-  slide_present_align() {
-    LINE="${1}"
-    ALIGN="${2}"
+  slide_present_tags() {
     if [[ "${LINE}" = '<left>' ]]; then 
-      echo 'left'
+      ALIGN='left'
     elif [[ "${LINE}" = '<right>' ]]; then  
-      echo 'right'
+      ALIGN='right'
     elif [[ "${LINE}" = '<center>' ]]; then
-      echo 'center'
+      ALIGN='center'
     elif [[ "${LINE}" = '</left>' ]] || [[ "${LINE}" = '</right>' ]] || [[ "${LINE}" = '</center>' ]]; then
-      echo "${PRESET_ALIGN}"
-    else
-      echo "${ALIGN}"
+      ALIGN="${PRESET_ALIGN}"
+    elif [[ "${LINE}" = '<pause>' ]]; then
+      read -sn 1 PAUSE
+    elif [[ "${LINE}" =~ ^\<sleep ]]; then
+      local SLEEP_SECONDS="${LINE#*=}"      
+      sleep "${SLEEP_SECONDS/>}"
     fi
   }
 
@@ -57,7 +58,7 @@ slide_present() {
   done
   local ALIGN="${PRESET_ALIGN}"
   while IFS= read -r LINE; do
-    local ALIGN=$(slide_present_align "${LINE}" ${ALIGN})
+    slide_present_tags
     if [[ "${ALIGN}" = 'left' ]]; then 
       local BUFFER=$(( TERM_WIDTH / 4))   
     elif [[ "${ALIGN}" = 'right' ]]; then  
@@ -93,12 +94,26 @@ main() {
     esac
   done
   term_size
-  for SLIDE in $(ls -1 ${SLIDES_DIR}); do
-    slide_present "${SLIDES_DIR}/${SLIDE}"
-    read ENTER
+  SLIDES=($(ls "${SLIDES_DIR}"))
+  SLIDE_NUM=0
+  while [[ $SLIDE_NUM -le ${#SLIDES} ]]; do
+    slide_present "${SLIDES_DIR}/${SLIDES[$SLIDE_NUM]}"
+    read -sn 1 INPUT
+    case "${INPUT}" in
+      ' ')
+        (( SLIDE_NUM++ ));;
+      '')
+        (( SLIDE_NUM++ ));;
+      l)
+        (( SLIDE_NUM++ ));;
+      h)
+        (( SLIDE_NUM-- ));;
+      q)
+        clear
+        exit 0;;
+    esac
   done
   clear
 }
-
 
 main ${@}
