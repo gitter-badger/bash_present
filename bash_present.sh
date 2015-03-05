@@ -9,7 +9,17 @@ help_message() {
       therefore must be followed by either left, right, or center.
   -h) Displays this help message.
 
-  -s) Declare the directory in which the slides are stored.'
+  -s) Declare the directory in which the slides are stored.
+  
+  -n) The integer value of the slide on which the presentation
+      should begin. The is zero indexed.
+      
+  One can Control the presentation once it has begun using the
+  following hotkeys:
+  space, return, and l move to the next slide.
+  h moves to the privious slide.
+  q exits the program.'
+  
   echo "${HELP_MESSAGE}"
 }
 
@@ -78,7 +88,7 @@ slide_present() {
 main() {
   local OPTION
   PRESET_ALIGN='left'
-  while getopts "a:hs:" OPTION; do
+  while getopts "a:hs:n:" OPTION; do
     case "$OPTION" in
       a)
         align_text "${OPTARG}";;
@@ -87,6 +97,8 @@ main() {
         exit 0;;
       s)
         local SLIDES_DIR="${OPTARG}";;
+      n)
+        local START_SLIDE="${OPTARG}";;
       ?)
         echo "${OPTION} is an invalid option."
         help_message
@@ -95,7 +107,7 @@ main() {
   done
   term_size
   SLIDES=($(echo "${SLIDES_DIR}/*.bp"))
-  SLIDE_NUM=0
+  SLIDE_NUM=${START_SLIDE}
   while [[ $SLIDE_NUM -le ${#SLIDES} ]]; do
     slide_present "${SLIDES[$SLIDE_NUM]}"
     read -sn 1 INPUT
