@@ -5,7 +5,7 @@ help_message() {
   to show off the advanced features of the BASH
   language. Below you can find the options which
   are accepted by the script to change behavior:
-  -a) The -a defines the default alignment for slides and 
+  -a) The -a defines the default alignment for slides and
       therefore must be followed by either left, right, or center.
   -h) Displays this help message.
 
@@ -34,19 +34,19 @@ align_text() {
 
 slide_present() {
   slide_present_tags() {
-    if [[ "${LINE}" = '<left>' ]]; then 
+    if [[ "${LINE}" = '<pause>' ]]; then
+      read -s PAUSE < /dev/tty
+    elif [[ "${LINE}" =~ ^\<sleep ]]; then
+      local SLEEP_SECONDS="${LINE#*=}"
+      sleep "${SLEEP_SECONDS/>}"
+    elif [[ "${LINE}" = '<left>' ]]; then
       ALIGN='left'
-    elif [[ "${LINE}" = '<right>' ]]; then  
+    elif [[ "${LINE}" = '<right>' ]]; then
       ALIGN='right'
     elif [[ "${LINE}" = '<center>' ]]; then
       ALIGN='center'
     elif [[ "${LINE}" = '</left>' ]] || [[ "${LINE}" = '</right>' ]] || [[ "${LINE}" = '</center>' ]]; then
       ALIGN="${PRESET_ALIGN}"
-    elif [[ "${LINE}" = '<pause>' ]]; then
-      read -sn 1 PAUSE
-    elif [[ "${LINE}" =~ ^\<sleep ]]; then
-      local SLEEP_SECONDS="${LINE#*=}"      
-      sleep "${SLEEP_SECONDS/>}"
     fi
   }
 
@@ -59,13 +59,13 @@ slide_present() {
   local ALIGN="${PRESET_ALIGN}"
   while IFS= read -r LINE; do
     slide_present_tags
-    if [[ "${ALIGN}" = 'left' ]]; then 
-      local BUFFER=$(( TERM_WIDTH / 4))   
-    elif [[ "${ALIGN}" = 'right' ]]; then  
+    if [[ "${ALIGN}" = 'left' ]]; then
+      local BUFFER=$(( TERM_WIDTH / 4))
+    elif [[ "${ALIGN}" = 'right' ]]; then
       local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) - $((TERM_WIDTH / 4)) ))
     elif [[ "${ALIGN}" = 'center' ]]; then
       local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) / 2 ))
-    fi
+    fi    
     if [[ ! "${LINE}" =~ ^\<.*\>$ ]]; then
       for SPACE in $(eval echo "{0..$BUFFER}"); do
         echo -n ' '
@@ -94,10 +94,10 @@ main() {
     esac
   done
   term_size
-  SLIDES=($(ls "${SLIDES_DIR}"))
+  SLIDES=($(echo "${SLIDES_DIR}/*.bp"))
   SLIDE_NUM=0
   while [[ $SLIDE_NUM -le ${#SLIDES} ]]; do
-    slide_present "${SLIDES_DIR}/${SLIDES[$SLIDE_NUM]}"
+    slide_present "${SLIDES[$SLIDE_NUM]}"
     read -sn 1 INPUT
     case "${INPUT}" in
       ' ')
