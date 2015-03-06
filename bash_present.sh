@@ -1,10 +1,9 @@
-#! /bin/bash
+# ! /bin/bash
 
 help_message() {
-  local HELP_MESSAGE='advanced_bash.sh is a script designed
-  to show off the advanced features of the BASH
-  language. Below you can find the options which
-  are accepted by the script to change behavior:
+  local HELP_MESSAGE='  bash_present.sh is a script designed to show off the advanced 
+  features of the BASH language. Below you can find the options
+  which are accepted by the script to change behavior:
   -a) The -a defines the default alignment for slides and
       therefore must be followed by either left, right, or center.
   -h) Displays this help message.
@@ -62,7 +61,8 @@ slide_present() {
 
   clear
   local SLIDE=${1}
-  local SLIDE_START=$(( TERM_HEIGHT / 6 ))
+  local SLIDE_START=$(( TERM_HEIGHT / 6 - 1 ))
+  echo "Slide: $((${SLIDE_NUM} + 1))/${#SLIDES[@]}"
   for ROW in $(eval echo "{0..$SLIDE_START}"); do
     echo
   done
@@ -80,7 +80,7 @@ slide_present() {
       for SPACE in $(eval echo "{0..$BUFFER}"); do
         echo -n ' '
       done
-      echo "${LINE}"
+      echo -e "${LINE}"
     fi
   done < "${SLIDE}"
 }
@@ -89,7 +89,7 @@ main() {
   local OPTION
   PRESET_ALIGN='left'
   while getopts "a:hs:n:" OPTION; do
-    case "$OPTION" in
+    case "${OPTION}" in
       a)
         align_text "${OPTARG}";;
       h)
@@ -99,16 +99,15 @@ main() {
         local SLIDES_DIR="${OPTARG}";;
       n)
         local START_SLIDE="${OPTARG}";;
-      ?)
-        echo "${OPTION} is an invalid option."
+      \?)
         help_message
         exit 1;;
     esac
   done
   term_size
-  SLIDES=($(echo "${SLIDES_DIR}/*.bp"))
-  SLIDE_NUM=${START_SLIDE}
-  while [[ $SLIDE_NUM -le ${#SLIDES} ]]; do
+  local SLIDES=($(echo "${SLIDES_DIR=.}/*.bp"))
+  local SLIDE_NUM=${START_SLIDE-0}
+  while [[ $SLIDE_NUM -le ${#SLIDES[@]} ]]; do
     slide_present "${SLIDES[$SLIDE_NUM]}"
     read -sn 1 INPUT
     case "${INPUT}" in
