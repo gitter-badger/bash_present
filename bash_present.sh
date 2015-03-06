@@ -62,7 +62,7 @@ slide_present() {
 
   clear
   local SLIDE=${1}
-  local SLIDE_START=$(( TERM_HEIGHT / 5 ))
+  local SLIDE_START=$(( TERM_HEIGHT / 6 ))
   for ROW in $(eval echo "{0..$SLIDE_START}"); do
     echo
   done
