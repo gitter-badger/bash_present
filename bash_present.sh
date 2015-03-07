@@ -41,6 +41,22 @@ align_text() {
   fi
 }
 
+command_interface() {
+  LINES=$(($TERM_HEIGHT - $LINE_COUNT - 2))
+  for LINE in $(eval echo {0..$LINES}); do
+    echo
+  done
+  read -p ':' COMMAND
+  if [[ "${COMMAND}" =~ goto\ [0-9]+ ]]; then
+    NEW_SLIDE="((${COMMAND#* } - 1))"
+    if (( ${NEW_SLIDE} >= 0 )) && (( ${NEW_SLIDE} < ${#SLIDES[@]} )); then
+      SLIDE_NUM="${NEW_SLIDE}"
+    fi
+  elif [[ "${COMMAND}" = 'quit' ]] || [[ "${COMMAND}" = 'q' ]]; then
+    QUIT='true'
+  fi
+}
+
 slide_present() {
   slide_present_tags() {
     if [[ "${LINE}" = '<pause>' ]]; then
@@ -61,9 +77,11 @@ slide_present() {
 
   local SLIDE=${1}
   local SLIDE_START=$(( TERM_HEIGHT / 6 - 1 ))
+  LINE_COUNT=1
   echo "Slide: $((${SLIDE_NUM} + 1))/${#SLIDES[@]}"
   for ROW in $(eval echo "{0..$SLIDE_START}"); do
     echo
+    (( LINE_COUNT++ ))
   done
   local ALIGN="${PRESET_ALIGN}"
   while IFS= read -r LINE; do
@@ -80,6 +98,7 @@ slide_present() {
         echo -n ' '
       done
       echo -e "${LINE}"
+      (( LINE_COUNT++ ))
     fi
   done < "${SLIDE}"
 }
@@ -104,8 +123,8 @@ main() {
     esac
   done
   term_size
-  local SLIDES=($(echo "${SLIDES_DIR=.}/*.bp"))
-  local SLIDE_NUM=${START_SLIDE-0}
+  SLIDES=($(echo "${SLIDES_DIR=.}/*.bp"))
+  SLIDE_NUM=${START_SLIDE-0}
   local QUIT='false'
   while [[ $QUIT == 'false' ]]; do
     clear
@@ -121,6 +140,8 @@ main() {
           (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
         h)
           (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
+        :)
+          command_interface;;
         q)
           QUIT='true';;
       esac
