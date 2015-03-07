@@ -150,11 +150,7 @@ main() {
       slide_present "${SLIDES[$SLIDE_NUM]}"
       read -sn 1 INPUT
       case "${INPUT}" in
-        ' ')
-          (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
-        '')
-          (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
-        l)
+        ' '|''|l)
           (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
         h)
           (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
