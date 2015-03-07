@@ -41,11 +41,26 @@ align_text() {
   fi
 }
 
-command_interface() {
+command_interface_spaces_default() {
   LINES=$(($TERM_HEIGHT - $LINE_COUNT - 2))
   for LINE in $(eval echo {0..$LINES}); do
     echo
   done
+  command_interface
+}
+
+command_interface_spaces_help() {
+  LINES=$(($TERM_HEIGHT - $LINE_COUNT - 5))
+  for LINE in $(eval echo {0..$LINES}); do
+    echo
+  done
+  echo ':goto # -- Go to a slide by number.'
+  echo ':quit -- Quit the program.'
+  echo ':help -- Show this text.'
+  command_interface
+}
+
+command_interface() {
   read -p ':' COMMAND
   if [[ "${COMMAND}" =~ goto\ [0-9]+ ]]; then
     NEW_SLIDE="((${COMMAND#* } - 1))"
@@ -54,6 +69,9 @@ command_interface() {
     fi
   elif [[ "${COMMAND}" = 'quit' ]] || [[ "${COMMAND}" = 'q' ]]; then
     QUIT='true'
+  elif [[ "${COMMAND}" = 'help' ]] || [[ "${COMMAND}" = '?' ]]; then
+    slide_present "${SLIDES[$SLIDE_NUM]}"
+    command_interface_spaces_help
   fi
 }
 
@@ -141,7 +159,7 @@ main() {
         h)
           (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
         :)
-          command_interface;;
+          command_interface_spaces_default;;
         q)
           QUIT='true';;
       esac
