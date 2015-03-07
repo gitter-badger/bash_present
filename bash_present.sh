@@ -59,7 +59,6 @@ slide_present() {
     fi
   }
 
-  clear
   local SLIDE=${1}
   local SLIDE_START=$(( TERM_HEIGHT / 6 - 1 ))
   echo "Slide: $((${SLIDE_NUM} + 1))/${#SLIDES[@]}"
@@ -107,22 +106,25 @@ main() {
   term_size
   local SLIDES=($(echo "${SLIDES_DIR=.}/*.bp"))
   local SLIDE_NUM=${START_SLIDE-0}
-  while [[ $SLIDE_NUM -le ${#SLIDES[@]} ]]; do
-    slide_present "${SLIDES[$SLIDE_NUM]}"
-    read -sn 1 INPUT
-    case "${INPUT}" in
-      ' ')
-        (( SLIDE_NUM++ ));;
-      '')
-        (( SLIDE_NUM++ ));;
-      l)
-        (( SLIDE_NUM++ ));;
-      h)
-        (( SLIDE_NUM-- ));;
-      q)
-        clear
-        exit 0;;
-    esac
+  local QUIT='false'
+  while [[ $QUIT == 'false' ]]; do
+    clear
+    if [[ ${SLIDES[$SLIDE_NUM]} ]]; then
+      slide_present "${SLIDES[$SLIDE_NUM]}"
+      read -sn 1 INPUT
+      case "${INPUT}" in
+        ' ')
+          (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
+        '')
+          (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
+        l)
+          (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
+        h)
+          (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
+        q)
+          QUIT='true';;
+      esac
+    fi
   done
   clear
 }
