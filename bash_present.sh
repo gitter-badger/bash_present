@@ -1,7 +1,9 @@
 # ! /bin/bash
 
+source format_defs.sh
+
 help_message() {
-  local HELP_MESSAGE='  bash_present.sh is a script designed to show off the advanced 
+  local HELP_MESSAGE='  bash_present.sh is a script designed to show off the advanced
   features of the BASH language. Below you can find the options
   which are accepted by the script to change behavior:
   -a) The -a defines the default alignment for slides and
@@ -9,16 +11,16 @@ help_message() {
   -h) Displays this help message.
 
   -s) Declare the directory in which the slides are stored.
-  
+
   -n) The integer value of the slide on which the presentation
       should begin. The is zero indexed.
-      
+
   One can Control the presentation once it has begun using the
   following hotkeys:
   space, return, and l move to the next slide.
   h moves to the privious slide.
   q exits the program.'
-  
+
   echo "${HELP_MESSAGE}"
 }
 
@@ -107,8 +109,11 @@ slide_present() {
       local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) - $((TERM_WIDTH / 4)) ))
     elif [[ "${ALIGN}" = 'center' ]]; then
       local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) / 2 ))
-    fi    
+    fi
     if [[ ! "${LINE}" =~ ^\<.*\>$ ]]; then
+      for FONT_KEY in "${!FONT_FORMATS[@]}"; do
+        LINE=${LINE/$FONT_KEY/${FONT_FORMATS[$FONT_KEY]}}
+      done
       for SPACE in $(eval echo "{0..$BUFFER}"); do
         echo -n ' '
       done
