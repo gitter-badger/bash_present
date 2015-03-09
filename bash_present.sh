@@ -29,12 +29,9 @@ term_size() {
 }
 
 align_text() {
-  if [[ "${1}" = 'left' ]]; then
-    PRESET_ALIGN='left'
-  elif [[ "${1}" = 'right' ]]; then
-    PRESET_ALIGN='right'
-  elif [[ "${1}" = 'center' ]]; then
-    PRESET_ALIGN='right'
+  ALIGNMENTS=( 'left' 'right' 'center' )
+  if [[ "${ALIGNMENTS[@]}" =~ "${1}" ]]; then
+    PRESET_ALIGN="${1}"
   else
     help_message
     exit 1
@@ -164,4 +161,4 @@ main() {
   clear
 }
 
-main ${@}
+main "${@}"
