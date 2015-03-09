@@ -136,7 +136,8 @@ main() {
       s)
         local SLIDES_DIR="${OPTARG}";;
       n)
-        local START_SLIDE="${OPTARG}";;
+        (( ${OPTARG} > 0?OPTARG--:OPTARG ))
+        local START_SLIDE=${OPTARG};;
       \?)
         help_message
         exit 1;;
