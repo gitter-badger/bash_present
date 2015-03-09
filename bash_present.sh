@@ -1,6 +1,6 @@
 # ! /bin/bash
 
-source color_defs.sh
+source format_defs.sh
 
 help_message() {
   local HELP_MESSAGE='  bash_present.sh is a script designed to show off the advanced
