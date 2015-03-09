@@ -110,10 +110,10 @@ slide_present() {
     elif [[ "${ALIGN}" = 'center' ]]; then
       local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) / 2 ))
     fi
+    for FONT_KEY in "${!FONT_FORMATS[@]}"; do
+      LINE=${LINE//$FONT_KEY/${FONT_FORMATS[$FONT_KEY]}}
+    done
     if [[ ! "${LINE}" =~ ^\<.*\>$ ]]; then
-      for FONT_KEY in "${!FONT_FORMATS[@]}"; do
-        LINE=${LINE/$FONT_KEY/${FONT_FORMATS[$FONT_KEY]}}
-      done
       for SPACE in $(eval echo "{0..$BUFFER}"); do
         echo -n ' '
       done
