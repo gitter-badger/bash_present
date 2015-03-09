@@ -114,15 +114,15 @@ slide_present() {
       local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) / 2 ))
     fi
     if [[ ! "${LINE}" =~ ^\<.*\>$ ]]; then
+      for FONT_KEY in "${!FONT_FORMATS[@]}"; do
+        LINE=${LINE/$FONT_KEY/${FONT_FORMATS[$FONT_KEY]}}
+      done
       for SPACE in $(eval echo "{0..$BUFFER}"); do
         echo -n ' '
       done
       echo -e "${LINE}"
       (( LINE_COUNT++ ))
     fi
-    for key in "${!formats[@]}"; do
-      LINE=${LINE/$key/${formats[$key]}}
-    done
   done < "${SLIDE}"
 }
 
