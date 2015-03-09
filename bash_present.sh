@@ -166,7 +166,7 @@ slide_present() {
   }
   format_defs
   local SLIDE=${1}
-  local SLIDE_START=$(( TERM_HEIGHT / 6 - 1 ))
+  local SLIDE_START=$(( TERM_HEIGHT / 8 - 1 ))
   LINE_COUNT=1
   echo "Slide: $((${SLIDE_NUM} + 1))/${#SLIDES[@]}"
   for ROW in $(eval echo "{0..$SLIDE_START}"); do
@@ -180,9 +180,9 @@ slide_present() {
       LINE=${LINE//$FONT_KEY/${FONT_FORMATS[$FONT_KEY]}}
     done
     if [[ "${ALIGN}" = 'left' ]]; then
-      local BUFFER=$(( TERM_WIDTH / 4))
+      local BUFFER=$(( TERM_WIDTH / 10))
     elif [[ "${ALIGN}" = 'right' ]]; then
-      local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) - $((TERM_WIDTH / 4)) ))
+      local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) - $((TERM_WIDTH / 10)) ))
     elif [[ "${ALIGN}" = 'center' ]]; then
       local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) / 2 ))
     fi
