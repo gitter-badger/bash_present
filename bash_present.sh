@@ -105,7 +105,7 @@ term_size() {
 
 align_text() {
   ALIGNMENTS=( 'left' 'right' 'center' )
-  if [[ "${ALIGNMENTS[@]}" =~ "${1}" ]]; then
+  if [[ "${ALIGNMENTS[@]}" =~ ${1} ]]; then
     PRESET_ALIGN="${1}"
   else
     help_message
