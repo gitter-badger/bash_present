@@ -224,11 +224,11 @@ main() {
     clear
     if [[ ${SLIDES[$SLIDE_NUM]} ]]; then
       slide_present "${SLIDES[$SLIDE_NUM]}"
-      read -sn 1 INPUT
+      read -r -sn 1 INPUT
       case "${INPUT}" in
-        ' '|''|l)
+        ' '|''|l|A|C)
           (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
-        h)
+        h|B|D)
           (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
         :)
           command_interface_spaces_default;;
