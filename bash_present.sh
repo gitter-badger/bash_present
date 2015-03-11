@@ -1,9 +1,11 @@
 #! /bin/bash
 
 help_message() {
-  local HELP_MESSAGE='  bash_present.sh is a script designed to show off the advanced
-  features of the BASH language. Below you can find the options
-  which are accepted by the script to change behavior:
+  local HELP_MESSAGE='  bash_present.sh is a script designed to render slides written 
+  in a custom markup language. This script is written using only
+  BASH builtins and includes the following features:
+
+  Commandline options:
   -a) The -a defines the default alignment for slides and
       therefore must be followed by either left, right, or center.
   -h) Displays this help message.
@@ -13,11 +15,16 @@ help_message() {
   -n) The integer value of the slide on which the presentation
       should begin. The is zero indexed.
 
-  One can Control the presentation once it has begun using the
-  following hotkeys:
-  space, return, and l move to the next slide.
-  h moves to the privious slide.
-  q exits the program.'
+  Hotkeys:
+  up arrow, right arrow, space, return, l, and k move to the next slide.
+  down arrow, left arrow, h, and j moves to the privious slide.
+  : (colon) opens the command interface.
+  q exits the program.
+
+  Command Interface:
+  :goto # switches slides to the number represented by the #.
+  :help prints out a list of commands.
+  :quit exits the program.'
 
   echo "${HELP_MESSAGE}"
 }
@@ -240,9 +247,9 @@ main() {
       slide_present "${SLIDES[$SLIDE_NUM]}"
       read -r -sn 1 INPUT
       case "${INPUT}" in
-        ' '|''|l|A|C)
+        ' '|''|l|k|A|C)
           (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
-        h|B|D)
+        h|j|B|D)
           (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
         :)
           command_interface_spaces_default;;
