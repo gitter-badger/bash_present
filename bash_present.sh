@@ -23,6 +23,8 @@ help_message() {
 }
 
 format_defs() {
+  # This function creates an associative array containing color codes and
+  # markup tags to be called as part of the slide_present function.
   declare -Ag FONT_FORMATS
   FONT_FORMATS['<clear>']='\e[0m'           # Text Reset
 
@@ -98,12 +100,17 @@ format_defs() {
 }
 
 term_size() {
+  # Discover and save the width of the terminal (in characters)
+  # and the height of the terminal (in lines).
   TERM_SIZE=$(read -p $'\e[18t' -s -r -d t size; echo ${size#*;})
   TERM_WIDTH=${TERM_SIZE/*;}
   TERM_HEIGHT=${TERM_SIZE/;*}
 }
 
 align_text() {
+  # Sets the PRESET_ALIGN variable if it matches one of the 
+  # accepted alignments in the ALIGNMENTS array. This ensures
+  # that the alignment will make sense later.
   ALIGNMENTS=( 'left' 'right' 'center' )
   if [[ "${ALIGNMENTS[@]}" =~ ${1} ]]; then
     PRESET_ALIGN="${1}"
@@ -114,6 +121,8 @@ align_text() {
 }
 
 command_interface_spaces_default() {
+  # The default command interface is placed at the bottom of then
+  # screen by this function.
   LINES=$(($TERM_HEIGHT - $LINE_COUNT - 2))
   for LINE in $(eval echo {0..$LINES}); do
     echo
@@ -122,6 +131,8 @@ command_interface_spaces_default() {
 }
 
 command_interface_spaces_help() {
+  # In addition to default command interface functionality, this
+  # function adds a list of accepted commands.
   LINES=$(($TERM_HEIGHT - $LINE_COUNT - 5))
   for LINE in $(eval echo {0..$LINES}); do
     echo
@@ -133,6 +144,7 @@ command_interface_spaces_help() {
 }
 
 command_interface() {
+  # Reads in commands and executes them.
   read -p ':' COMMAND
   if [[ "${COMMAND}" =~ goto\ [0-9]+ ]]; then
     NEW_SLIDE="((${COMMAND#* } - 1))"
@@ -148,7 +160,9 @@ command_interface() {
 }
 
 slide_present() {
+  # Responsible for printing the current slide.
   slide_present_tags() {
+    # Determines what to do on lines made solely of tags. 
     if [[ "${LINE}" = '<pause>' ]]; then
       read -s PAUSE < /dev/tty
     elif [[ "${LINE}" =~ ^\<sleep ]]; then
