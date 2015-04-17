@@ -14,6 +14,8 @@ help_message() {
 
   -n) The integer value of the slide on which the presentation
       should begin. The is zero indexed.
+  -A) Adds a new slide based on a number given after the option.
+  -R) Removes a sldie based on a number given after the option.
 
   Hotkeys:
   up arrow, right arrow, space, return, l, and k move to the next slide.
@@ -218,34 +220,34 @@ slide_present() {
 }
 
 add_slide() {
-  declare -i  NEW_SLIDE_NUM="${1}"
+  # Adds new slides based on slide number, moves old slides up to make room.
+  declare -i NEW_SLIDE_NUM="${1}"
+  local SLIDES_DIR="${2}"
+  declare -a SLIDES_DIR_CONTENTS=($(echo ${SLIDES_DIR}/*.bp))
   read -p 'What is the title of the new slide? ' NEW_SLIDE_TITLE
-  for SLIDE in $(echo *); do
+  for SLIDE in ${SLIDES_DIR_CONTENTS[@]##*/}; do
     declare -i SLIDE_NUM=$(expr ${SLIDE%%_*} + 0)
-    declare -i SLIDE_NUM_LENGTH=$(echo ${SLIDE%%_*} | wc -c)
+    declare -i SLIDE_NUM_LENGTH=${#SLIDE_NUM}
     if [[ $SLIDE_NUM -ge $NEW_SLIDE_NUM ]]; then
       local SLIDE_NUM_PREFIX=$(($SLIDE_NUM + 1))
-      while [[ $(echo $SLIDE_NUM_PREFIX | wc -c) -lt $SLIDE_NUM_LENGTH ]]; do
+      while [[ ${#SLIDE_NUM_PREFIX} -lt $SLIDE_NUM_LENGTH ]]; do
         SLIDE_NUM_PREFIX="0${SLIDE_NUM_PREFIX}"
       done
-      mv $SLIDE ${SLIDE_NUM_PREFIX}_${SLIDE#*_}
+      mv $SLIDE ${SLIDES_DIR}/${SLIDE_NUM_PREFIX}_${SLIDE#*_}
     fi
   done
   local NEW_SLIDE_NUM_PREFIX=$NEW_SLIDE_NUM
-  local HIGHEST_SLIDE=$(ls -1 | tail -n1)
-  while [[ $(echo $NEW_SLIDE_NUM_PREFIX | wc -c) -lt $(echo ${HIGHEST_SLIDE%%_*} | wc -c) ]]; do
+  declare -i HIGHEST_SLIDE=${#SLIDES_DIR_CONTENTS[@]}
+  while [[ ${#NEW_SLIDE_NUM_PREFIX} -lt ${#HIGHEST_SLIDE} ]]; do
         NEW_SLIDE_NUM_PREFIX="0${NEW_SLIDE_NUM_PREFIX}"
   done
   local NEW_SLIDE_TITLE_LOWERED=${NEW_SLIDE_TITLE,,}
   local NEW_SLIDE_FILE="${NEW_SLIDE_NUM_PREFIX}_${NEW_SLIDE_TITLE_LOWERED// /_}.bp"
   touch $NEW_SLIDE_FILE
-  echo "<center>" >> $NEW_SLIDE_FILE
-  figlet "$NEW_SLIDE_TITLE" >> $NEW_SLIDE_FILE
-  echo "</center>" >> $NEW_SLIDE_FILE
-  echo >> $NEW_SLIDE_FILE
 }
 
 remove_slide() {
+  # Removes slides based on slide number, moves other sides down to ensure no empty spaces.
   declare -i  REMOVE_SLIDE_NUM="${1}"
   local REMOVE_SLIDE=$(ls -1 | egrep ^0*${REMOVE_SLIDE_NUM}_)
   if [[ -f $REMOVE_SLIDE ]]; then
@@ -295,13 +297,13 @@ main() {
   done
   if [[ ${EDIT_SLIDES} == 'yes' ]]; then
     if [[ ${ADD_SLIDE} ]]; then
-      add_slide ${ADD_SLIDE}
+      add_slide ${ADD_SLIDE} "${SLIDES_DIR:=$PWD}"
     elif [[ ${REMOVE_SLIDE} ]]; then
-      remove_slide ${REMOVE_SLIDE}
+      remove_slide ${REMOVE_SLIDE} "${SLIDES_DIR:=$PWD}"
     fi
   else
     term_size
-    SLIDES=($(echo "${SLIDES_DIR=.}/*.bp"))
+    SLIDES=($(echo "${SLIDES_DIR=$PWD}/*.bp"))
     SLIDE_NUM=${START_SLIDE-0}
     local QUIT='false'
     while [[ $QUIT == 'false' ]]; do
