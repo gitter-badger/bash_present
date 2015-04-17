@@ -217,10 +217,60 @@ slide_present() {
   done < "${SLIDE}"
 }
 
+add_slide() {
+  declare -i  NEW_SLIDE_NUM="${1}"
+  read -p 'What is the title of the new slide? ' NEW_SLIDE_TITLE
+  for SLIDE in $(echo *); do
+    declare -i SLIDE_NUM=$(expr ${SLIDE%%_*} + 0)
+    declare -i SLIDE_NUM_LENGTH=$(echo ${SLIDE%%_*} | wc -c)
+    if [[ $SLIDE_NUM -ge $NEW_SLIDE_NUM ]]; then
+      local SLIDE_NUM_PREFIX=$(($SLIDE_NUM + 1))
+      while [[ $(echo $SLIDE_NUM_PREFIX | wc -c) -lt $SLIDE_NUM_LENGTH ]]; do
+        SLIDE_NUM_PREFIX="0${SLIDE_NUM_PREFIX}"
+      done
+      mv $SLIDE ${SLIDE_NUM_PREFIX}_${SLIDE#*_}
+    fi
+  done
+  local NEW_SLIDE_NUM_PREFIX=$NEW_SLIDE_NUM
+  local HIGHEST_SLIDE=$(ls -1 | tail -n1)
+  while [[ $(echo $NEW_SLIDE_NUM_PREFIX | wc -c) -lt $(echo ${HIGHEST_SLIDE%%_*} | wc -c) ]]; do
+        NEW_SLIDE_NUM_PREFIX="0${NEW_SLIDE_NUM_PREFIX}"
+  done
+  local NEW_SLIDE_TITLE_LOWERED=${NEW_SLIDE_TITLE,,}
+  local NEW_SLIDE_FILE="${NEW_SLIDE_NUM_PREFIX}_${NEW_SLIDE_TITLE_LOWERED// /_}.bp"
+  touch $NEW_SLIDE_FILE
+  echo "<center>" >> $NEW_SLIDE_FILE
+  figlet "$NEW_SLIDE_TITLE" >> $NEW_SLIDE_FILE
+  echo "</center>" >> $NEW_SLIDE_FILE
+  echo >> $NEW_SLIDE_FILE
+}
+
+remove_slide() {
+  declare -i  REMOVE_SLIDE_NUM="${1}"
+  local REMOVE_SLIDE=$(ls -1 | egrep ^0*${REMOVE_SLIDE_NUM}_)
+  if [[ -f $REMOVE_SLIDE ]]; then
+    for SLIDE in $(echo *); do
+      declare -i SLIDE_NUM=$(expr ${SLIDE%%_*} + 0)
+      declare -i SLIDE_NUM_LENGTH=$(echo ${SLIDE%%_*} | wc -c)
+      if [[ $SLIDE_NUM -gt $REMOVE_SLIDE_NUM ]]; then
+        local SLIDE_NUM_PREFIX=$(($SLIDE_NUM - 1))
+        while [[ $(echo $SLIDE_NUM_PREFIX | wc -c) -lt $SLIDE_NUM_LENGTH ]]; do
+          SLIDE_NUM_PREFIX="0${SLIDE_NUM_PREFIX}"
+        done
+        mv $SLIDE ${SLIDE_NUM_PREFIX}_${SLIDE#*_}
+      fi
+    done
+    rm $REMOVE_SLIDE
+  else
+    echo "No slide numbered $REMOVE_SLIDE_NUM exists."
+    exit 1
+  fi
+}
+
 main() {
   local OPTION
   PRESET_ALIGN='left'
-  while getopts "a:hs:n:" OPTION; do
+  while getopts "a:hs:n:A:R:" OPTION; do
     case "${OPTION}" in
       a)
         align_text "${OPTARG}";;
@@ -232,33 +282,47 @@ main() {
       n)
         (( ${OPTARG} > 0?OPTARG--:OPTARG ))
         local START_SLIDE="${OPTARG}";;
+      A)
+        local ADD_SLIDE="${OPTARG}"
+        local EDIT_SLIDES='yes';;
+      R)
+        local REMOVE_SLIDE="${OPTARG}"
+        local EDIT_SLIDES='yes';;
       \?)
         help_message
         exit 1;;
     esac
   done
-  term_size
-  SLIDES=($(echo "${SLIDES_DIR=.}/*.bp"))
-  SLIDE_NUM=${START_SLIDE-0}
-  local QUIT='false'
-  while [[ $QUIT == 'false' ]]; do
-    clear
-    if [[ ${SLIDES[$SLIDE_NUM]} ]]; then
-      slide_present "${SLIDES[$SLIDE_NUM]}"
-      read -r -sn 1 INPUT
-      case "${INPUT}" in
-        ' '|''|l|k|A|C)
-          (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
-        h|j|B|D)
-          (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
-        :)
-          command_interface_spaces_default;;
-        q)
-          QUIT='true';;
-      esac
+  if [[ ${EDIT_SLIDES} == 'yes' ]]; then
+    if [[ ${ADD_SLIDE} ]]; then
+      add_slide ${ADD_SLIDE}
+    elif [[ ${REMOVE_SLIDE} ]]; then
+      remove_slide ${REMOVE_SLIDE}
     fi
-  done
-  clear
+  else
+    term_size
+    SLIDES=($(echo "${SLIDES_DIR=.}/*.bp"))
+    SLIDE_NUM=${START_SLIDE-0}
+    local QUIT='false'
+    while [[ $QUIT == 'false' ]]; do
+      clear
+      if [[ ${SLIDES[$SLIDE_NUM]} ]]; then
+        slide_present "${SLIDES[$SLIDE_NUM]}"
+        read -r -sn 1 INPUT
+        case "${INPUT}" in
+          ' '|''|l|k|A|C)
+            (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
+          h|j|B|D)
+            (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
+          :)
+            command_interface_spaces_default;;
+          q)
+            QUIT='true';;
+        esac
+      fi
+    done
+    clear
+  fi
 }
 
 main "${@}"
