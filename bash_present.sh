@@ -218,47 +218,87 @@ slide_present() {
 }
 
 main() {
+  # The main function provides the interface and command line argument features.
   local OPTION
-  PRESET_ALIGN='left'
+  PRESET_ALIGN='left' # Sets the default text alignment to left.
+  # Performs the getoots loop to detect and injest command line arguments.
   while getopts "a:hs:n:" OPTION; do
     case "${OPTION}" in
       a)
+        # If the -a command is entered, open the align_text function with the
+        # contents of the option following the argument.
         align_text "${OPTARG}";;
       h)
+        # If the -h arugment is called, print the help message and exit with 
+        # a sucessful exit code (0). Do not process any other arguments once 
+        # detected.
         help_message
         exit 0;;
       s)
+        # If the -s arugment is detected, set the SLIDES_DIR variable with the 
+        # contents of the options following the argument. This will override 
+        # default used in the assignment of the SLIDES array below.
         local SLIDES_DIR="${OPTARG}";;
       n)
+        # If the -n argument is called, test to see if the subsequent option is
+        # greater than zero, if so set the option to one less than requested, to
+        # resolve the slides being indexed by zero issues, if the option is zero
+        # then do not change it. Then pass fixed option into the START_SLIDE
+        # variable.
         (( ${OPTARG} > 0?OPTARG--:OPTARG ))
         local START_SLIDE="${OPTARG}";;
       \?)
+        # If any argument other than the ones above are detected, print the
+        # help message then exit with a failure exit code (1). Do not process
+        # any other arguments.
         help_message
         exit 1;;
     esac
   done
-  term_size
-  SLIDES=($(echo "${SLIDES_DIR=.}/*.bp"))
-  SLIDE_NUM=${START_SLIDE-0}
+  term_size # Run the term_size function to detect the size of the terminal.
+  SLIDES=($(echo "${SLIDES_DIR=.}/*.bp")) # All slides must end with .bp in
+                                          # order to be detected. Also, sets
+                                          # the default slides directory to
+                                          # the current working directory if
+                                          # not set by the -s command line
+                                          # argument.
+  SLIDE_NUM=${START_SLIDE-0} # Opens the first slide, zero indexed, if not
+                             # specified by the -n command line argument.
   local QUIT='false'
-  while [[ $QUIT == 'false' ]]; do
+  # Detects key presses to move between slides, to open the command interface,
+  # or to quit.
+  while [[ $QUIT == 'false' ]]; do 
     clear
-    if [[ ${SLIDES[$SLIDE_NUM]} ]]; then
-      slide_present "${SLIDES[$SLIDE_NUM]}"
-      read -r -sn 1 INPUT
+    if [[ ${SLIDES[$SLIDE_NUM]} ]]; then # Determines if the requested slide
+                                         # exists. If not, do nothing.
+      slide_present "${SLIDES[$SLIDE_NUM]}" # Passes the requested slide number
+                                            # to the slide_present function.
+      read -r -sn 1 INPUT # Silently reads the first character entered as INPUT.
       case "${INPUT}" in
         ' '|''|l|k|A|C)
-          (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));;
+          # If the character entered is either a space, return character, l, k,
+          # A, or C move to the next slide. A and C are the up and right arrow
+          # keys.The ternary operation below ensures that the next slide will
+          # not go past the last slide.
+          (( $SLIDE_NUM < ${#SLIDES[@]} - 1?SLIDE_NUM++:SLIDE_NUM ));; 
         h|j|B|D)
+          # If the character entered is an h, j, B, or D go back one slide. B 
+          # and D are the down and left arrow keys. If the requested slide is
+          # lower than the first slide, do nothing.
           (( $SLIDE_NUM > 0?SLIDE_NUM--:SLIDE_NUM ));;
         :)
+          # The colon (":") key opens the command interface through the 
+          # command_interface_spaces_default. See commentsunder the 
+          # command_interface function for details.
           command_interface_spaces_default;;
         q)
+          # If the character enters is q quit the program.
           QUIT='true';;
       esac
     fi
   done
-  clear
+  reset # Reset the terminal, this ensures that no formating done during the
+        # presentation will linger once the presentation is over.
 }
 
 main "${@}"
