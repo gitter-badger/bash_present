@@ -171,8 +171,12 @@ slide_present() {
   slide_present_tags() {
     # Determines what to do on lines made solely of tags. 
     if [[ "${LINE}" = '<pause>' ]]; then
+      # Pausesthe printing of following lines in a slide until the enter key is 
+      # pressed. This is useful for hiding parts of a slide for display upon a 
+      # key press.
       read -s PAUSE < /dev/tty
     elif [[ "${LINE}" =~ ^\<sleep ]]; then
+      # Delays the printing of following lines in a slide 
       local SLEEP_SECONDS="${LINE#*=}"
       sleep "${SLEEP_SECONDS/>}"
     elif [[ "${LINE}" = '<left>' ]]; then
@@ -181,7 +185,9 @@ slide_present() {
       ALIGN='right'
     elif [[ "${LINE}" = '<center>' ]]; then
       ALIGN='center'
-    elif [[ "${LINE}" = '</left>' ]] || [[ "${LINE}" = '</right>' ]] || [[ "${LINE}" = '</center>' ]]; then
+    elif [[ "${LINE}" = '</left>' ]] \
+      || [[ "${LINE}" = '</right>' ]] \
+      || [[ "${LINE}" = '</center>' ]]; then
       ALIGN="${PRESET_ALIGN}"
     fi
   }
