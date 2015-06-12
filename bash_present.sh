@@ -166,6 +166,17 @@ command_interface() {
   fi
 }
 
+align(){
+  local ALIGN="${1}"
+  if [[ "${ALIGN}" = 'left' ]]; then
+    echo $(( TERM_WIDTH / 10))
+  elif [[ "${ALIGN}" = 'right' ]]; then
+    echo $(( $((TERM_WIDTH - ${#LINE})) - $((TERM_WIDTH / 10)) ))
+  elif [[ "${ALIGN}" = 'center' ]]; then
+    echo $(( $((TERM_WIDTH - ${#LINE})) / 2 ))
+  fi
+}
+
 slide_present() {
   # Responsible for printing the current slide.
   slide_present_tags() {
@@ -176,14 +187,18 @@ slide_present() {
       # key press.
       read -s PAUSE < /dev/tty
     elif [[ "${LINE}" =~ ^\<sleep ]]; then
-      # Delays the printing of following lines in a slide 
+      # Delays the printing of following lines in a slide for a the number of
+      # seconds specified after the sleep tag (i.e. <sleep 15>)
       local SLEEP_SECONDS="${LINE#*=}"
       sleep "${SLEEP_SECONDS/>}"
     elif [[ "${LINE}" = '<left>' ]]; then
+      # Sets the ALIGN veriable left for use in the align function.
       ALIGN='left'
     elif [[ "${LINE}" = '<right>' ]]; then
+      # Aligns text to the right.
       ALIGN='right'
     elif [[ "${LINE}" = '<center>' ]]; then
+      
       ALIGN='center'
     elif [[ "${LINE}" = '</left>' ]] \
       || [[ "${LINE}" = '</right>' ]] \
@@ -206,13 +221,7 @@ slide_present() {
     for FONT_KEY in "${!FONT_FORMATS[@]}"; do
       LINE=${LINE//$FONT_KEY/${FONT_FORMATS[$FONT_KEY]}}
     done
-    if [[ "${ALIGN}" = 'left' ]]; then
-      local BUFFER=$(( TERM_WIDTH / 10))
-    elif [[ "${ALIGN}" = 'right' ]]; then
-      local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) - $((TERM_WIDTH / 10)) ))
-    elif [[ "${ALIGN}" = 'center' ]]; then
-      local BUFFER=$(( $((TERM_WIDTH - ${#LINE})) / 2 ))
-    fi
+    local BUFFER=$(align ${ALIGN})
     if [[ ! "${LINE}" =~ ^\<[a-z0-9=\/]*\>$ ]]; then
       for SPACE in $(eval echo "{0..$BUFFER}"); do
         echo -n ' '
