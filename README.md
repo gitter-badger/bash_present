@@ -1,4 +1,6 @@
 # bash_present.sh
+
+[![Join the chat at https://gitter.im/xzovy/bash_present](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/xzovy/bash_present?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 bash_present.sh is a script designed to render slides written in a custom markup language. This script is written using only BASH builtins and includes the following features:
 
 ***Commandline options:***
